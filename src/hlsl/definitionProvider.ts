@@ -42,7 +42,6 @@ export default class HLSLDefinitionProvider implements DefinitionProvider, Imple
 				{
 					resolve(result);
 				}
-                resolve(result);
             }, reason => reject(reason));
     
         });

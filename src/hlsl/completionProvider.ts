@@ -1,6 +1,6 @@
 'use strict';
 
-import { CompletionItemProvider, CompletionItem, CompletionItemKind, CancellationToken, TextDocument, Position, Range, TextEdit, workspace } from 'vscode';
+import { CompletionItemProvider, CompletionItem, CompletionItemKind, CancellationToken, TextDocument, Position, Range, TextEdit, workspace, commands, SymbolInformation, SymbolKind } from 'vscode';
 import hlslGlobals = require('./hlslGlobals');
 
 
@@ -85,17 +85,72 @@ export default class HLSLCompletionItemProvider implements CompletionItemProvide
             }
         }
 
-        var text = document.getText();
-        var functionMatch = /^\w+\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/mg;
-        var match: RegExpExecArray = null;
-        while (match = functionMatch.exec(text)) {
-            var word = match[1];
-            if (!added[word]) {
-                added[word] = true;
-                result.push(createNewProposal(CompletionItemKind.Function, word, null));
-            }
-        }
+		return new Promise<CompletionItem[]>((resolve, reject) => {
+			commands.executeCommand<SymbolInformation[]>('vscode.executeWorkspaceSymbolProvider', "").then(symbols => {
+				var ToCompletionItemKind = (kind: SymbolKind) => {
+					switch(kind) 
+					{
+						case SymbolKind.File:
+							return CompletionItemKind.File;
+						case SymbolKind.Module:
+							return CompletionItemKind.Module;
+						case SymbolKind.Namespace:
+							return CompletionItemKind.Module;
+						case SymbolKind.Package:
+							return CompletionItemKind.Module;
+						case SymbolKind.Class:
+							return CompletionItemKind.Class;
+						case SymbolKind.Method:
+							return CompletionItemKind.Method;
+						case SymbolKind.Property:
+							return CompletionItemKind.Property;
+						case SymbolKind.Field:
+							return CompletionItemKind.Field;
+						case SymbolKind.Constructor:
+							return CompletionItemKind.Constructor;
+						case SymbolKind.Enum:
+							return CompletionItemKind.Enum;
+						case SymbolKind.Interface:
+							return CompletionItemKind.Interface;
+						case SymbolKind.Function:
+							return CompletionItemKind.Function;
+						case SymbolKind.Variable:
+							return CompletionItemKind.Variable;
+						case SymbolKind.Constant:
+							return CompletionItemKind.Constant;
+						case SymbolKind.Struct:
+							return CompletionItemKind.Struct;
+						case SymbolKind.Event:
+							return CompletionItemKind.Event;
+						case SymbolKind.Operator:
+							return CompletionItemKind.Operator;
+						case SymbolKind.TypeParameter:
+							return CompletionItemKind.TypeParameter;
+						default:
+							return CompletionItemKind.Text;
+					}
+				}
 
-        return Promise.resolve(result);
-    }
+
+				for (let symbol of symbols) {
+					if( matches(symbol.name) ) {
+						added[symbol.name] = true;
+						result.push(createNewProposal(ToCompletionItemKind(symbol.kind), name, hlslGlobals.keywords[name], 'keyword'));
+					}
+				}
+
+				var text = document.getText();
+				var functionMatch = /^\w+\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/mg;
+				var match = null;
+				while (match = functionMatch.exec(text)) {
+					var word = match[1];
+					if (!added[word]) {
+						added[word] = true;
+						result.push(createNewProposal(CompletionItemKind.Function, word, null));
+					}
+				}
+				
+				resolve(result);
+			}, reason => reject(reason)) });
+	}
 }

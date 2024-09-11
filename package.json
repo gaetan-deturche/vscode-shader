@@ -12,7 +12,7 @@
 		"onLanguage:glsl",
 		"onLanguage:cg"
 	],
-	"main": "./out/extension",
+	"main": "./dist/extension",
 	"license": "LICENSE.md",
 	"icon": "icon.png",
 	"bugs": {
@@ -157,15 +157,21 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./"
+		"compile": "npm run check-types && node esbuild.mjs",
+		"check-types": "tsc --noEmit",
+		"watch": "npm-run-all -p watch:*",
+		"watch:esbuild": "node esbuild.mjs --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+		"vscode:prepublish": "npm run package",
+		"package": "npm run check-types && node esbuild.mjs --production"
 	},
 	"devDependencies": {
 		"@types/node": "^12.18.3",
 		"@types/tmp": "^0.2.0",
 		"@types/vscode": "^1.53",
-		"typescript": "^4.9.5"
+		"esbuild": "^0.23.1",
+		"npm-run-all": "^4.1.5",
+		"typescript": "^5.6.2"
 	},
 	"dependencies": {
 		"follow-redirects": "^1.5.8",
