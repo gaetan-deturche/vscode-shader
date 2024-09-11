@@ -27,6 +27,21 @@ export default class HLSLDefinitionProvider implements DefinitionProvider, Imple
                         result.push(symbol.location);
                     }
                 }
+				if( result.length == 0 )
+				{
+					commands.executeCommand<SymbolInformation[]>('vscode.executeWorkspaceSymbolProvider', name).then(symbols => {
+						for (let symbol of symbols) {
+							if (symbol.name === name) {
+								result.push(symbol.location);
+							}
+						}
+						resolve(result);
+					}, reason2 => reject(reason2));
+				}
+				else
+				{
+					resolve(result);
+				}
                 resolve(result);
             }, reason => reject(reason));
     

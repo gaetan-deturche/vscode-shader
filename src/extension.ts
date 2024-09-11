@@ -66,6 +66,11 @@ function searchRgPath()
         return rgPath;
     }
 
+	rgPath = exePathIsDefined( Path.join( vscode.env.appRoot, "node_modules.asar.unpacked/@vscode/ripgrep/bin/", exeName() ) );
+    if( rgPath ) {
+        return rgPath;
+    }
+
     return rgPath;
 }
 

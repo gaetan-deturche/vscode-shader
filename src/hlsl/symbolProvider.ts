@@ -8,11 +8,14 @@ import { join } from 'path';
 interface ISymbolPattern { kind: SymbolKind, pattern: string }
 
 const searchPatterns: ISymbolPattern[] = [
-    { kind: SymbolKind.Function, pattern: /^\w+\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)\s*\(/.source },
-    { kind: SymbolKind.Struct, pattern: /^(?:struct|cbuffer|tbuffer)\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
-    { kind: SymbolKind.Variable, pattern: /^(?:sampler|sampler1D|sampler2D|sampler3D|samplerCUBE|samplerRECT|sampler_state|SamplerState)\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
-    { kind: SymbolKind.Field, pattern: /^(?:texture|texture2D|textureCUBE|Texture1D|Texture1DArray|Texture2D|Texture2DArray|Texture2DMS|Texture2DMSArray|Texture3D|TextureCube|TextureCubeArray|RWTexture1D|RWTexture1DArray|RWTexture2D|RWTexture2DArray|RWTexture3D)(?:\s*<(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9,_\x7f-\xff]*)>)?\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9\[\]_\x7f-\xff]*)/.source },
-    { kind: SymbolKind.Field, pattern: /^(?:AppendStructuredBuffer|Buffer|ByteAddressBuffer|ConsumeStructuredBuffer|RWBuffer|RWByteAddressBuffer|RWStructuredBuffer|StructuredBuffer)(?:\s*<(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9,_\x7f-\xff]*)>)?\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9\[\]_\x7f-\xff]*)/.source },
+    { kind: SymbolKind.Function, pattern: /^[\t ]*\w+[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)[\t ]*\(/.source },
+    { kind: SymbolKind.Struct, pattern: /^[\t ]*(?:struct|cbuffer|tbuffer)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
+    { kind: SymbolKind.Variable, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*(?:sampler|sampler1D|sampler2D|sampler3D|samplerCUBE|samplerRECT|sampler_state|SamplerState)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
+	{ kind: SymbolKind.Variable, pattern: /^.*(?:float|int)(?:[1-4](?:x[1-4])?)?[\t ]+([a-zA-Z_][a-zA-Z0-9_]*)[^\(]/.source },
+    { kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*(?:texture|texture2D|textureCUBE|Texture1D|Texture1DArray|Texture2D|Texture2DArray|Texture2DMS|Texture2DMSArray|Texture3D|TextureCube|TextureCubeArray|RWTexture1D|RWTexture1DArray|RWTexture2D|RWTexture2DArray|RWTexture3D)(?:[\t ]*<(?:[a-zA-Z_][a-zA-Z0-9,_]*)>)?[\t ]+([a-zA-Z_][a-zA-Z0-9\[\]_]*)/.source },
+    { kind: SymbolKind.Field, pattern: /^[\t ]*(?:AppendStructuredBuffer|Buffer|ByteAddressBuffer|ConsumeStructuredBuffer|RWBuffer|RWByteAddressBuffer|RWStructuredBuffer|StructuredBuffer)(?:[\t ]*<(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9,_\x7f-\xff]*)>)?[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9\[\]_\x7f-\xff]*)/.source },
+	{ kind: SymbolKind.Field, pattern: /^[\t ]*\x23define[\t ]*([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
+	{ kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*DECLARE_[A-Z0-9_]*\(\s+([a-zA-Z_][a-zA-Z0-9_]*)/.source },
 ];
 
 export interface ISymbolCache { [path: string]: SymbolInformation[]; }
@@ -76,17 +79,8 @@ export default class HLSLDocumentSymbolProvider implements DocumentSymbolProvide
                     let line = document.positionAt(match.index).line;
                     let range = document.lineAt(line).range;
                     let word = match[1];
-
-                    let lastChar =  kind === SymbolKind.Function ? ')' :
-                                    kind === SymbolKind.Struct ? '}' :
-                                    kind === SymbolKind.Variable ? ';' :
-                                    kind === SymbolKind.Field ? ';' :
-                                    '';
-
-                    if (lastChar) {
-                        let end = text.indexOf(lastChar, match.index) + 1;
-                        range = new Range(range.start, document.positionAt(end));
-                    }
+					let wordPos = match[0].indexOf(word);
+					range = new Range(range.start.translate(0, wordPos), range.start.translate(0, wordPos + word.length));
                     result.push(new SymbolInformation(word, kind, '', new Location(document.uri, range)));
                 }
             }
