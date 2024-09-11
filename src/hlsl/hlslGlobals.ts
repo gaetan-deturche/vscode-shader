@@ -1334,7 +1334,257 @@ export var intrinsicfunctions: IEntries = {
         description: 'Truncates a floating-point value to the integer component.',
         parameters: [{ label: 'value', documentation: 'The specified input.' }],
         link: 'https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-trunc'
-    }
+    },
+	Gather: {
+		description: 'Gets the four samples (red component only) that would be used for bilinear interpolation when sampling a texture.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation:'[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The argument type is dependent on the texture-object type. For shaders targeting Shader Model 5.0 and above, the 6 least significant bits of each offset value is honored as a signed value, yielding [-32..31] range. For previous shader model shaders, offsets need to be immediate integers between -8 and 7.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-gather'
+	},
+	GatherRed: {
+		description: 'Returns the red components of a Texture\'s four texel values that would be used in a bi-linear filtering operation.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation:'[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The argument type is dependent on the texture-object type. For shaders targeting Shader Model 5.0 and above, the 6 least significant bits of each offset value is honored as a signed value, yielding [-32..31] range. For previous shader model shaders, offsets need to be immediate integers between -8 and 7.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/texture2d-gatherred'
+	},
+	GatherGreen: {
+		description: 'Returns the green components of a Texture\'s four texel values that would be used in a bi-linear filtering operation.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation:'[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The argument type is dependent on the texture-object type. For shaders targeting Shader Model 5.0 and above, the 6 least significant bits of each offset value is honored as a signed value, yielding [-32..31] range. For previous shader model shaders, offsets need to be immediate integers between -8 and 7.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/texture2d-gathergreen'
+	},
+	GatherBlue: {
+		description: 'Returns the blue components of a Texture\'s four texel values that would be used in a bi-linear filtering operation.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation:'[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The argument type is dependent on the texture-object type. For shaders targeting Shader Model 5.0 and above, the 6 least significant bits of each offset value is honored as a signed value, yielding [-32..31] range. For previous shader model shaders, offsets need to be immediate integers between -8 and 7.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/texture2d-gatherblue'
+	},
+	GatherAlpha: {
+		description: 'Returns the alpha components of a Texture\'s four texel values that would be used in a bi-linear filtering operation.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation:'[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The argument type is dependent on the texture-object type. For shaders targeting Shader Model 5.0 and above, the 6 least significant bits of each offset value is honored as a signed value, yielding [-32..31] range. For previous shader model shaders, offsets need to be immediate integers between -8 and 7.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/texture2d-gatheralpha'
+	},
+	GetDimensions: {
+		description: 'Gets texture size information. The syntax block shows all the parameters that are possible in the method declaration. The table in the Remarks section shows which parameters are implemented for each texture-object type.',
+		parameters: [
+			{ label: 'MipLevel', documentation:'[in] A zero-based index that identifies the mipmap level. If this argument is not used, the first mip level is assumed.' },
+			{ label: 'Width', documentation:'[out] The texture width, in texels.' },
+			{ label: 'Height', documentation:'[out] The texture height, in texels.' },
+			{ label: 'Elements', documentation:'[out] The number of elements in an array.' },
+			{ label: 'Depth', documentation:'[out] The texture depth, in texels.' },
+			{ label: 'NumberOfLevels', documentation:'[out] The number of mipmap levels.' },
+			{ label: 'NumberOfSamples', documentation:'[out] The number of samples.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-getdimensions'
+	},
+	Load: {
+		description: 'Reads texel data without any filtering or sampling.',
+		parameters: [
+			{ label: 'Location', documentation:'[in] The texture coordinates; the last component specifies the mipmap level. This method uses a 0-based coordinate system and not a 0.0-1.0 UV system. The argument type is dependent on the texture-object type.'},
+			{ label: 'SampleIndex', documentation:'[in] A sampling index. Required for multi-sample textures. Not supported for other textures.' },
+			{ label: 'Offset', documentation:'[in] An optional offset applied to the texture coordinates before sampling. The offset type is dependent on the texture-object type, and needs to be static.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-load'
+	},
+	Sample: {
+		description: 'Samples a texture.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation: '[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The texture offsets need to be static. The argument type is dependent on the texture-object type.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-sample'
+	},
+	SampleBias: {
+		description: 'Samples a texture, after applying the input bias to the mipmap level.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'Bias', documentation:'[in] The bias value, which is a floating-point number between -16.0 and 15.99, is applied to a mip level before sampling.' },
+			{ label: 'Offset', documentation: '[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The texture offsets need to be static. The argument type is dependent on the texture-object type.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-samplebias'
+	},
+	SampleCmp: {
+		description: 'Samples a texture and compares a single component against the specified comparison value.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'CompareValue', documentation:'[in] A floating-point value to use as a comparison value.' },
+			{ label: 'Offset', documentation: '[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The texture offsets need to be static. The argument type is dependent on the texture-object type.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-samplecmp'
+	},
+	SampleCmpLevelZero: {
+		description: 'Samples a texture and compares the result to a comparison value. This function is identical to calling SampleCmp on mipmap level 0 only.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'CompareValue', documentation:'[in] A floating-point value to use as a comparison value.' },
+			{ label: 'Offset', documentation: '[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The texture offsets need to be static. The argument type is dependent on the texture-object type.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-samplecmplevelzero'
+	},
+	SampleGrad: {
+		description: 'Samples a texture using a gradient to influence the way the sample location is calculated.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'DDX', documentation:'[in] The rate of change of the surface geometry in the x direction. The argument type is dependent on the texture-object type.' },
+			{ label: 'DDY', documentation:'[in] The rate of change of the surface geometry in the y direction. The argument type is dependent on the texture-object type.' },
+			{ label: 'Offset', documentation: '[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The texture offsets need to be static. The argument type is dependent on the texture-object type.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-samplegrad'
+	},
+	SampleLevel: {
+		description: 'Samples a texture using a mipmap-level offset.',
+		parameters: [
+			{ label: 'S', documentation:'[in] A Sampler state. This is an object declared in an effect file that contains state assignments.' },
+			{ label: 'Location', documentation:'[in] The texture coordinates. The argument type is dependent on the texture-object type.' },
+			{ label: 'LOD', documentation:'[in] A number that specifies the mipmap level. If the value is = 0, the zero\'th (biggest map) is used. The fractional value (if supplied) is used to interpolate between two mipmap levels.' },
+			{ label: 'Offset', documentation: '[in] An optional texture coordinate offset, which can be used for any texture-object type; the offset is applied to the location before sampling. The texture offsets need to be static. The argument type is dependent on the texture-object type.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-samplelevel'
+	},
+	QuadReadAcrossDiagonal: {
+		description: 'Returns the specified local value which is read from the diagonally opposite lane in this quad.',
+		parameters: [ { label:'localValue', documentation:'The requested type.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/quadreadacrossdiagonal'
+	},
+	QuadReadLaneAt: {
+		description: 'Returns the specified source value from the lane identified by the lane ID within the current quad.',
+		parameters: [
+			{ label:'sourceValue', documentation:'The requested type.' },
+			{ label:'quadLaneID', documentation:'The lane ID; this will be a value from 0 to 3.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/quadreadlaneat'
+	},
+	QuadReadAcrossX: {
+		description: 'Returns the specified local value read from the other lane in this quad in the X direction.',
+		parameters: [ { label:'localValue', documentation:'The requested type.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/quadswapx'
+	},
+	QuadReadAcrossY: {
+		description: 'Returns the specified source value read from the other lane in this quad in the Y direction.',
+		parameters: [ { label:'localValue', documentation:'The requested type.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/quadswapy'
+	},
+	WaveActiveAllEqual: {
+		description: 'Returns true if the expression is the same for every active lane in the current wave (and thus uniform across it).',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate. <type> can be a basic scalar, vector, or matrix type.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveactiveallequal'
+	},
+	WaveActiveBitAnd: {
+		description: 'Returns the bitwise AND of all the values of the expression across all active lanes in the current wave and replicates it back to all active lanes.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallbitand'
+	},
+	WaveActiveBitOr: {
+		description: 'Returns the bitwise OR of all the values of the expression across all active lanes in the current wave and replicates it back to all active lanes.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallbitor'
+	},
+	WaveActiveBitXor: {
+		description: 'Returns the bitwise XOR of all the values of the expression across all active lanes in the current wave and replicates it back to all active lanes.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallbitxor'
+	},
+	WaveActiveCountBits: {
+		description: 'Counts the number of boolean variables which evaluate to true across all active lanes in the current wave, and replicates the result to all lanes in the wave.',
+		parameters: [ { label:'bBit', documentation:'The boolean variables to evaluate. Providing an explicit true Boolean value returns the number of active lanes.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveactivecountbits'
+	},
+	WaveActiveMax: {
+		description: 'Returns the maximum value of the expression across all active lanes in the current wave and replicates it back to all active lanes.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallmax'
+	},
+	WaveActiveMin: {
+		description: 'Returns the minimum value of the expression across all active lanes in the current wave replicates it back to all active lanes.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallmin'
+	},
+	WaveActiveProduct: {
+		description: 'Multiplies the values of the expression together across all active lanes in the current wave and replicates it back to all active lanes.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallproduct'
+	},
+	WaveActiveSum: {
+		description: 'Sums up the value of the expression across all active lanes in the current wave and replicates it to all lanes in the current wave.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveallsum'
+	},
+	WaveActiveAllTrue: {
+		description: 'Returns true if the expression is true in all active lanes in the current wave.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/wavealltrue'
+	},
+	WaveActiveAnyTrue: {
+		description: 'Returns true if the expression is true in any of the active lanes in the current wave.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveanytrue'
+	},
+	WaveActiveBallot: {
+		description: 'Returns a 4-bit unsigned integer bitmask of the evaluation of the Boolean expression for all active lanes in the specified wave.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveballot'
+	},
+	WaveGetLaneCount: {
+		description: 'Returns the number of lanes in a wave on this architecture.',
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/wavegetlanecount'
+	},
+	WaveGetLaneIndex: {
+		description: 'Returns the index of the current lane within the current wave.',
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/wavegetlaneindex'
+	},
+	WaveIsFirstLane: {
+		description: 'Returns true only for the active lane in the current wave with the smallest index.',
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveisfirstlane'
+	},
+	WavePrefixCountBits: {
+		description: 'Returns the sum of all the specified boolean variables set to true across all active lanes with indices smaller than the current lane.',
+		parameters: [ { label:'bBit', documentation:'The specified boolean variables.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveprefixcountbytes'
+	},
+	WavePrefixProduct: {
+		description: 'Returns the product of all of the values in the active lanes in this wave with indices less than this lane.',
+		parameters: [{ label:'value', documentation:'The value to multiply.' }],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveprefixproduct'
+	},
+	WavePrefixSum: {
+		description: 'Returns the sum of all of the values in the active lanes with smaller indices than this one.',
+		parameters: [{ label:'value', documentation:'The value to sum up.' }],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/waveprefixsum'
+	},
+	WaveReadLaneFirst: {
+		description: 'Returns the value of the expression for the active lane of the current wave with the smallest index.',
+		parameters: [ { label:'expr', documentation:'The expression to evaluate.' } ],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/wavereadfirstlane'
+	},
+	WaveReadLaneAt: {
+		description: 'Returns the value of the expression for the given lane index within the specified wave.',
+		parameters: [ 
+			{ label:'expr', documentation:'The expression to evaluate.' },
+			{ label:'laneIndex', documentation:'The index of the lane for which the expr result will be returned.' }
+		],
+		link: 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/wavereadlaneat'
+	}
 }
 
 export var preprocessors: IEntries = {
