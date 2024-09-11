@@ -135,7 +135,7 @@ export default class HLSLCompletionItemProvider implements CompletionItemProvide
 				for (let symbol of symbols) {
 					if( matches(symbol.name) ) {
 						added[symbol.name] = true;
-						result.push(createNewProposal(ToCompletionItemKind(symbol.kind), name, hlslGlobals.keywords[name], 'keyword'));
+						result.push(createNewProposal(ToCompletionItemKind(symbol.kind), symbol.name, null, 'keyword'));
 					}
 				}
 
