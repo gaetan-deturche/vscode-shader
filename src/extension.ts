@@ -60,6 +60,11 @@ function searchRgPath()
         return rgPath;
     }
 
+	rgPath = exePathIsDefined( Path.join( vscode.env.appRoot, "node_modules/@vscode/ripgrep/bin/", exeName() ) );
+	if( rgPath ) {
+        return rgPath;
+    }
+
     // If vscode-ripgrep is in an .asar file, then the binary is unpacked.
     rgPath = exePathIsDefined( Path.join( vscode.env.appRoot, "node_modules.asar.unpacked/vscode-ripgrep/bin/", exeName() ) );
     if( rgPath ) {

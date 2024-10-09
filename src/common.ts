@@ -3,13 +3,13 @@ export var rgPath: string = '';
 export var hlslExtensions: string[] = [];
 
 export function setRgPath(path: string) {
-    rgPath = path;
+	rgPath = path;
 }
 
 export function getRgPath() {
-    return rgPath;
+	return rgPath;
 }
 
-export function setHlslExtensions(ext: string){
-    hlslExtensions.push(ext);
+export function setHlslExtensions(ext: string) {
+	hlslExtensions.push(ext);
 }
