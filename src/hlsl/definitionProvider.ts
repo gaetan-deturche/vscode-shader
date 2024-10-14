@@ -19,6 +19,23 @@ export default class HLSLDefinitionProvider implements DefinitionProvider, Imple
             }
             
             let name = document.getText(wordRange);
+
+			let line = document.lineAt( position );
+			let match = RegExp('^[\t ]*\#include \"([a-zA-Z/\\\.0-9]+)\"').exec(line.text);
+			if( match )
+			{
+				let relativePath = workspace.findFiles( match[1], null, 1 ).then( files => {
+					if( files && files.length > 0 )
+					{
+						let result: Location[] = [];
+						result.push( new Location( files[0], new Position(0, 0)) );
+						resolve(result);
+					} else {
+						reject();
+					}
+				} );
+				return;
+			}
             
             commands.executeCommand<SymbolInformation[]>('vscode.executeDocumentSymbolProvider', document.uri).then(symbols => {
                 let result: Location[] = [];
