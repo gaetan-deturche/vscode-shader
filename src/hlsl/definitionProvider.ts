@@ -21,7 +21,7 @@ export default class HLSLDefinitionProvider implements DefinitionProvider, Imple
             let name = document.getText(wordRange);
 
 			let line = document.lineAt( position );
-			let match = RegExp('^[\t ]*\#include \"([a-zA-Z/\\\.0-9]+)\"').exec(line.text);
+			let match = RegExp('^[\t ]*\#include \"([a-zA-Z/\\\.0-9_]+)\"').exec(line.text);
 			if( match )
 			{
 				let relativePath = workspace.findFiles( match[1], null, 1 ).then( files => {
