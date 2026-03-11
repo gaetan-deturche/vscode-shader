@@ -9,10 +9,10 @@ interface ISymbolPattern { kind: SymbolKind, pattern: string }
 
 const searchPatterns: ISymbolPattern[] = [
     { kind: SymbolKind.Function, pattern: /^[\t ]*\w+[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)[\t ]*\([^\)]*\)(?!;)/.source },
-    { kind: SymbolKind.Struct, pattern: /^[\t ]*(?:struct|cbuffer|tbuffer)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
-    { kind: SymbolKind.Variable, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*(?:sampler|sampler1D|sampler2D|sampler3D|samplerCUBE|samplerRECT|sampler_state|SamplerState)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
+    { kind: SymbolKind.Struct, pattern: /^[\t ]*(?:struct|cbuffer|tbuffer|ConstantBuffer)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
+    { kind: SymbolKind.Variable, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform|groupshared)*(?:sampler|sampler1D|sampler2D|sampler3D|samplerCUBE|samplerRECT|sampler_state|SamplerState|SamplerComparisonState)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
 	{ kind: SymbolKind.Variable, pattern: /^.*(?:float|int|bool)(?:[1-4](?:x[1-4])?)?[\t ]+([a-zA-Z_][a-zA-Z0-9_]*)[^\(]/.source },
-    { kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*(?:texture|texture2D|textureCUBE|Texture1D|Texture1DArray|Texture2D|Texture2DArray|Texture2DMS|Texture2DMSArray|Texture3D|TextureCube|TextureCubeArray|RWTexture1D|RWTexture1DArray|RWTexture2D|RWTexture2DArray|RWTexture3D)(?:[\t ]*<(?:[a-zA-Z_][a-zA-Z0-9,_]*)>)?[\t ]+([a-zA-Z_][a-zA-Z0-9\[\]_]*)/.source },
+    { kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*(?:texture|texture2D|textureCUBE|Texture1D|Texture1DArray|Texture2D|Texture2DArray|Texture2DMS|Texture2DMSArray|Texture2DMultisample|Texture3D|TextureCube|TextureCubeArray|RWTexture1D|RWTexture1DArray|RWTexture2D|RWTexture2DArray|RWTexture3D|TextureRenderTarget2D|RenderTarget2D|RenderTargetCube)(?:[\t ]*<(?:[a-zA-Z_][a-zA-Z0-9,_]*)>)?[\t ]+([a-zA-Z_][a-zA-Z0-9\[\]_]*)/.source },
     { kind: SymbolKind.Field, pattern: /^[\t ]*(?:AppendStructuredBuffer|Buffer|ByteAddressBuffer|ConsumeStructuredBuffer|RWBuffer|RWByteAddressBuffer|RWStructuredBuffer|StructuredBuffer)(?:[\t ]*<(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9,_\x7f-\xff]*)>)?[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9\[\]_\x7f-\xff]*)/.source },
 	{ kind: SymbolKind.Function, pattern: /^[\t ]*\#define[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)\(/.source },
 	{ kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*DECLARE_[A-Z0-9_]*\(\s+([a-zA-Z_][a-zA-Z0-9_]*)/.source },

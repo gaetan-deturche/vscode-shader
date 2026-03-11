@@ -16,7 +16,7 @@ async function main() {
     sourcesContent: false,
     platform: 'node',
     outfile: 'dist/extension.js',
-    external: ['vscode'],
+    external: ['vscode', './xhr-sync-worker.js'],
     logLevel: 'warning',
     plugins: [
       /* add to the end of plugins array */
