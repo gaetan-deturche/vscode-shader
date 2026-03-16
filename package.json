@@ -164,7 +164,7 @@
 		"watch:esbuild": "node esbuild.mjs --watch",
 		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
 		"vscode:prepublish": "npm run package",
-		"package": "npm run check-types && node esbuild.mjs --production && npm run copy-vsix",
+		"package": "npm run check-types && node esbuild.mjs --production",
 		"copy-vsix": "node -e \"const fs=require('fs');const v=require('./package.json').version;fs.copyFileSync('shader-'+v+'.vsix','../shader-'+v+'.vsix');console.log('Copied to parent folder')\""
 	},
 	"devDependencies": {

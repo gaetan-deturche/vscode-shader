@@ -16,7 +16,7 @@ async function main() {
     sourcesContent: false,
     platform: 'node',
     outfile: 'dist/extension.js',
-    external: ['vscode', './xhr-sync-worker.js'],
+    external: ['vscode'],
     logLevel: 'warning',
     plugins: [
       /* add to the end of plugins array */
@@ -189,12 +189,13 @@ async function requireResolve(specifier, parent, system) {
 const jsdomPatch = {
 	name: "jsdom-patch",
 	setup(build) {
-	  build.onLoad({ filter: /xmlhttprequest\.js$/ }, async (args) => {
+	  build.onLoad({ filter: /XMLHttpRequest-impl\.js$/ }, async (args) => {
 		let contents = await fs.promises.readFile(args.path, "utf8")
+		console.log('args.path', args.path);
 		contents = contents.replace(
 		  'const syncWorkerFile = require.resolve ? require.resolve("./xhr-sync-worker.js") : null;',
 		  `const syncWorkerFile = "${await requireResolve(
-			"jsdom/lib/jsdom/living/xhr-sync-worker.js"
+			"jsdom/lib/jsdom/living/xhr/xhr-sync-worker.js"
 		  )}";`.replaceAll("\\", process.platform === "win32" ? "\\\\" : "\\")
 		)
 		return { contents, loader: "js" }
