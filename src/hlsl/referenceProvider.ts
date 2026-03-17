@@ -1,8 +1,14 @@
 'use strict';
 
 import { ReferenceProvider, CancellationToken, TextDocument, Position, Location, SymbolInformation, commands, workspace } from 'vscode';
+import { SymbolCache } from './symbolCache';
 
 export default class HLSLReferenceProvider implements ReferenceProvider {
+    private symbolCache: SymbolCache;
+
+    constructor(symbolCache?: SymbolCache) {
+        this.symbolCache = symbolCache || new SymbolCache();
+    }
 
     public provideReferences(document: TextDocument, position: Position, options: { includeDeclaration: boolean }, token: CancellationToken): Thenable<Location[]> {
         let enable = workspace.getConfiguration('hlsl').get<boolean>('suggest.basic', true);
@@ -29,7 +35,7 @@ export default class HLSLReferenceProvider implements ReferenceProvider {
                 results.push(new Location(document.uri, document.getWordRangeAtPosition(refPosition)));
             }
 
-            let symbols = await commands.executeCommand<SymbolInformation[]>('vscode.executeWorkspaceSymbolProvider', name);
+            let symbols = await this.symbolCache.findSymbols(name);
             symbols.filter(s => (s.name === name && s.location.uri.toString() != document.uri.toString()) ).forEach(symbol => {
                 results.push(symbol.location);
             });

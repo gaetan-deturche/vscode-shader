@@ -2,9 +2,15 @@
 
 import { CompletionItemProvider, CompletionItem, CompletionItemKind, CancellationToken, TextDocument, Position, Range, TextEdit, workspace, commands, SymbolInformation, SymbolKind } from 'vscode';
 import hlslGlobals = require('./hlslGlobals');
+import { SymbolCache } from './symbolCache';
 
 
 export default class HLSLCompletionItemProvider implements CompletionItemProvider {
+    private symbolCache: SymbolCache;
+
+    constructor(symbolCache?: SymbolCache) {
+        this.symbolCache = symbolCache || new SymbolCache();
+    }
 
     public triggerCharacters = ['.'];
 
@@ -86,7 +92,7 @@ export default class HLSLCompletionItemProvider implements CompletionItemProvide
         }
 
 		return new Promise<CompletionItem[]>((resolve, reject) => {
-			commands.executeCommand<SymbolInformation[]>('vscode.executeWorkspaceSymbolProvider', "").then(symbols => {
+			this.symbolCache.findSymbols("").then(symbols => {
 				var ToCompletionItemKind = (kind: SymbolKind) => {
 					switch(kind) 
 					{

@@ -8,14 +8,14 @@ import { join } from 'path';
 interface ISymbolPattern { kind: SymbolKind, pattern: string }
 
 const searchPatterns: ISymbolPattern[] = [
-    { kind: SymbolKind.Function, pattern: /^[\t ]*\w+[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)[\t ]*\([^\)]*\)(?!;)/.source },
+    { kind: SymbolKind.Function, pattern: /^[\t ]*(?:void|bool|int|uint|half|float|double|float2|float3|float4|float2x2|float3x3|float4x4|int2|int3|int4|uint2|uint3|uint4|bool2|bool3|bool4|half2|half3|half4|double2|double3|double4|[a-zA-Z_][a-zA-Z0-9_]*)\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)\s*\([^)]*\)(?!;)/.source },
     { kind: SymbolKind.Struct, pattern: /^[\t ]*(?:struct|cbuffer|tbuffer|ConstantBuffer)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
     { kind: SymbolKind.Variable, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform|groupshared)*(?:sampler|sampler1D|sampler2D|sampler3D|samplerCUBE|samplerRECT|sampler_state|SamplerState|SamplerComparisonState)[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)/.source },
 	{ kind: SymbolKind.Variable, pattern: /^.*(?:float|int|bool)(?:[1-4](?:x[1-4])?)?[\t ]+([a-zA-Z_][a-zA-Z0-9_]*)[^\(]/.source },
     { kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*(?:texture|texture2D|textureCUBE|Texture1D|Texture1DArray|Texture2D|Texture2DArray|Texture2DMS|Texture2DMSArray|Texture2DMultisample|Texture3D|TextureCube|TextureCubeArray|RWTexture1D|RWTexture1DArray|RWTexture2D|RWTexture2DArray|RWTexture3D|TextureRenderTarget2D|RenderTarget2D|RenderTargetCube)(?:[\t ]*<(?:[a-zA-Z_][a-zA-Z0-9,_]*)>)?[\t ]+([a-zA-Z_][a-zA-Z0-9\[\]_]*)/.source },
     { kind: SymbolKind.Field, pattern: /^[\t ]*(?:AppendStructuredBuffer|Buffer|ByteAddressBuffer|ConsumeStructuredBuffer|RWBuffer|RWByteAddressBuffer|RWStructuredBuffer|StructuredBuffer)(?:[\t ]*<(?:[a-zA-Z_\x7f-\xff][a-zA-Z0-9,_\x7f-\xff]*)>)?[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9\[\]_\x7f-\xff]*)/.source },
 	{ kind: SymbolKind.Function, pattern: /^[\t ]*\#define[\t ]+([a-zA-Z_\x7f-\xff][a-zA-Z0-9:_\x7f-\xff]*)\(/.source },
-	{ kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*DECLARE_[A-Z0-9_]*\(\s+([a-zA-Z_][a-zA-Z0-9_]*)/.source },
+	/*{ kind: SymbolKind.Field, pattern: /^[\t ]*(?:globallycoherent|\t| |static|uniform)*DECLARE_[A-Z0-9_]*\(\s+([a-zA-Z_][a-zA-Z0-9_]*)/.source },*/
 ];
 
 export interface ISymbolCache { [path: string]: SymbolInformation[]; }
@@ -111,36 +111,47 @@ export default class HLSLDocumentSymbolProvider implements DocumentSymbolProvide
         }
 
         const documents = workspace.textDocuments;
+        console.log('getDocument: checking', documents.length, 'documents');
         for (const document of documents) {
             if (document.languageId == 'hlsl') {
+                console.log('getDocument: found hlsl document:', document.uri.toString());
                 return document;
             }
         }
+        console.log('getDocument: no hlsl document found');
         return undefined;
     }
 
     public provideWorkspaceSymbols(query: string, token: CancellationToken): Thenable<SymbolInformation[]> {
+        console.log('provideWorkspaceSymbols called with query:', query, 'rgPath:', rgPath);
+        
         if (!rgPath) {
-            return null;
+            console.log('provideWorkspaceSymbols: no rgPath, returning empty');
+            return Promise.resolve([]);
         }
         
         return new Promise<SymbolInformation[]>((resolve, reject) => {
             let results: SymbolInformation[] = [];
 
             const document = this.getDocument();
+            console.log('provideWorkspaceSymbols: document:', document?.uri.toString());
+            
             if (!document){
                 resolve( results );
+                return;
             }
 
             const ws = workspace.getWorkspaceFolder(document.uri);
             if (!ws) {
+                console.log('provideWorkspaceSymbols: no workspace folder');
                 resolve(results);
+                return;
             }
 
             const rootPath = ws.uri.fsPath;
             const execOpts = {
                 cwd: rootPath,
-                maxBuffer: 1024 * 1024 * 50
+                maxBuffer: 1024 * 1024 * 500
             }
 
             let includePattern = '-g *' +  this._hlslPattern.join(' -g *'); 
@@ -148,7 +159,15 @@ export default class HLSLDocumentSymbolProvider implements DocumentSymbolProvide
             for (let entry of searchPatterns) {
                 const kind = entry.kind;
                 const searchPattern = entry.pattern;
-                let output = execSync(`"${rgPath}" ${includePattern} -o --case-sensitive -H --line-number --column --pcre2 --hidden -e "${searchPattern}" .`, execOpts);
+                let output: string | Buffer = "";
+				try
+				{
+					output = execSync(`"${rgPath}" ${includePattern} -o --case-sensitive -H --line-number --column --pcre2 --hidden -e "${searchPattern}" .`, execOpts);
+				}
+				catch(error)
+				{
+					console.log(error);
+				}
 
                 let lines = output.toString().split('\n');
                 for (let line of lines) {

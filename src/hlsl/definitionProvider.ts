@@ -1,9 +1,15 @@
 'use strict'
 
 import { DefinitionProvider, ImplementationProvider, TypeDefinitionProvider, SymbolInformation, TextDocument, Position, Location, CancellationToken, Definition, workspace, commands } from 'vscode';
+import { SymbolCache } from './symbolCache';
 
 
 export default class HLSLDefinitionProvider implements DefinitionProvider, ImplementationProvider, TypeDefinitionProvider {
+    private symbolCache: SymbolCache;
+
+    constructor(symbolCache?: SymbolCache) {
+        this.symbolCache = symbolCache || new SymbolCache();
+    }
 
     private getDefinitionLocations(document: TextDocument, position: Position): Thenable<Location[]> {
         return new Promise<Location[]>((resolve, reject) => {
@@ -37,16 +43,16 @@ export default class HLSLDefinitionProvider implements DefinitionProvider, Imple
 				return;
 			}
             
-            commands.executeCommand<SymbolInformation[]>('vscode.executeDocumentSymbolProvider', document.uri).then(symbols => {
+            this.symbolCache.getDocumentSymbols(document).then(symbols => {
                 let result: Location[] = [];
                 for (let symbol of symbols) {
                     if (symbol.name === name) {
                         result.push(symbol.location);
                     }
-                }
+				}
 				if( result.length == 0 )
 				{
-					commands.executeCommand<SymbolInformation[]>('vscode.executeWorkspaceSymbolProvider', name).then(symbols => {
+					this.symbolCache.findSymbols(name).then(symbols => {
 						for (let symbol of symbols) {
 							if (symbol.name === name) {
 								result.push(symbol.location);

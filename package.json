@@ -37,6 +37,12 @@
 		"Cg"
 	],
 	"contributes": {
+		"commands": [
+			{
+				"command": "shader.refreshSymbols",
+				"title": "Shader: Refresh Symbols"
+			}
+		],
 		"languages": [
 			{
 				"id": "hlsl",

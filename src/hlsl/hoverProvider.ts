@@ -5,6 +5,7 @@ import { HTML_TEMPLATE } from './html';
 import hlslGlobals = require('./hlslGlobals');
 import { https } from 'follow-redirects';
 import { JSDOM } from 'jsdom';
+import { SymbolCache } from './symbolCache';
 
 export function textToMarkedString(text: string): MarkedString {
 	return text.replace(/[\\`*_{}[\]()#+\-.!]/g, '\\$&'); // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
@@ -30,12 +31,14 @@ export default class HLSLHoverProvider implements HoverProvider {
 
     private _subscriptions: Disposable[] = [];
     private _panel: WebviewPanel = null;
+    private symbolCache: SymbolCache;
 
     private getSymbols(document: TextDocument): Thenable<SymbolInformation[]> {
-        return commands.executeCommand<SymbolInformation[]>('vscode.executeDocumentSymbolProvider', document.uri);
+        return this.symbolCache.getDocumentSymbols(document);
     }
 
-    constructor() {
+    constructor(symbolCache?: SymbolCache) {
+        this.symbolCache = symbolCache || new SymbolCache();
         this._subscriptions.push( commands.registerCommand('shader.openLink', (link: string, newWindow: boolean) => {
             if (!this._panel) {
                 this._panel = window.createWebviewPanel(

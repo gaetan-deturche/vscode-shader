@@ -13,6 +13,7 @@ import HLSLSignatureHelpProvider from './hlsl/signatureProvider';
 import HLSLSymbolProvider from './hlsl/symbolProvider';
 import HLSLDefinitionProvider from './hlsl/definitionProvider';
 import HLSLReferenceProvider from './hlsl/referenceProvider';
+import { SymbolCache } from './hlsl/symbolCache';
 
 class HLSLFormatingProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
 
@@ -98,20 +99,36 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     }
 
+    const wsFolder = vscode.workspace.workspaceFolders?.[0];
+    const cachePath = wsFolder ? Path.join(wsFolder.uri.fsPath, '.vs', 'symbol-cache.json') : '';
+    console.log('Creating SymbolCache with path:', cachePath);
+    const symbolCache = new SymbolCache(cachePath);
+
+    context.subscriptions.push(vscode.commands.registerCommand('shader.refreshSymbols', async () => {
+        console.log('Manual refresh symbols command triggered');
+        await symbolCache.refreshWithProgress();
+    }));
+
     // add providers
-    context.subscriptions.push(vscode.languages.registerHoverProvider(documentSelector, new HLSLHoverProvider()));
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(documentSelector, new HLSLCompletionItemProvider(), '.'));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(documentSelector, new HLSLHoverProvider(symbolCache)));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(documentSelector, new HLSLCompletionItemProvider(symbolCache), '.'));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(documentSelector, new HLSLSignatureHelpProvider(), '(', ','));
-    context.subscriptions.push(vscode.languages.registerReferenceProvider(documentSelector, new HLSLReferenceProvider()));
+    context.subscriptions.push(vscode.languages.registerReferenceProvider(documentSelector, new HLSLReferenceProvider(symbolCache)));
 
     let symbolProvider = new HLSLSymbolProvider();
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(documentSelector, symbolProvider));
     context.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(symbolProvider));
 
-    let definitionProvider = new HLSLDefinitionProvider();
+    let definitionProvider = new HLSLDefinitionProvider(symbolCache);
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, definitionProvider));
     context.subscriptions.push(vscode.languages.registerImplementationProvider(documentSelector, definitionProvider));
     context.subscriptions.push(vscode.languages.registerTypeDefinitionProvider(documentSelector, definitionProvider));
+
+    context.subscriptions.push({
+        dispose: () => {
+            symbolCache.dispose();
+        }
+    });
 
     if (vscode.extensions.getExtension('ms-vscode.cpptools') !== undefined) {
         let formatingProvider = new HLSLFormatingProvider();
