@@ -30,6 +30,10 @@ async function main() {
     await ctx.rebuild();
     await ctx.dispose();
   }
+
+  // The sql.js WASM binary is loaded at runtime from the extension's dist dir.
+  fs.mkdirSync('dist', { recursive: true });
+  fs.copyFileSync('node_modules/sql.js/dist/sql-wasm.wasm', 'dist/sql-wasm.wasm');
 }
 
 /**

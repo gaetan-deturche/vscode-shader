@@ -14,6 +14,8 @@ import HLSLSymbolProvider from './hlsl/symbolProvider';
 import HLSLDefinitionProvider from './hlsl/definitionProvider';
 import HLSLReferenceProvider from './hlsl/referenceProvider';
 import { SymbolCache } from './hlsl/symbolCache';
+import { ISymbolBackend } from './hlsl/symbolBackend';
+import { AstIndex } from './hlsl/ast/astIndex';
 
 class HLSLFormatingProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
 
@@ -77,6 +79,18 @@ function searchRgPath()
         return rgPath;
     }
 
+    // Newer VS Code builds ship @vscode/ripgrep-universal with a per-platform subdir.
+    const platformDir = `${process.platform}-${process.arch}`;
+    rgPath = exePathIsDefined( Path.join( vscode.env.appRoot, "node_modules/@vscode/ripgrep-universal/bin/", platformDir, exeName() ) );
+    if( rgPath ) {
+        return rgPath;
+    }
+
+    rgPath = exePathIsDefined( Path.join( vscode.env.appRoot, "node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/", platformDir, exeName() ) );
+    if( rgPath ) {
+        return rgPath;
+    }
+
     return rgPath;
 }
 
@@ -100,22 +114,45 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     const wsFolder = vscode.workspace.workspaceFolders?.[0];
-    const cachePath = wsFolder ? Path.join(wsFolder.uri.fsPath, '.vs', 'symbol-cache.json') : '';
-    console.log('Creating SymbolCache with path:', cachePath);
-    const symbolCache = new SymbolCache(cachePath);
+    const useAst = vscode.workspace.getConfiguration('hlsl').get<string>('parser', 'ast') === 'ast';
+
+    let symbolCache: ISymbolBackend;
+    if (useAst) {
+        const cachePath = wsFolder ? Path.join(wsFolder.uri.fsPath, '.vs', 'hlsl-symbols.sqlite') : '';
+        console.log('Creating AstIndex with path:', cachePath);
+        symbolCache = new AstIndex(cachePath);
+    } else {
+        const cachePath = wsFolder ? Path.join(wsFolder.uri.fsPath, '.vs', 'symbol-cache.json') : '';
+        console.log('Creating SymbolCache with path:', cachePath);
+        symbolCache = new SymbolCache(cachePath);
+    }
 
     context.subscriptions.push(vscode.commands.registerCommand('shader.refreshSymbols', async () => {
         console.log('Manual refresh symbols command triggered');
-        await symbolCache.refreshWithProgress();
+        await symbolCache.refreshWithProgress(true);
+    }));
+
+    // Switching parser engines re-wires every provider, so prompt for a reload.
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('hlsl.parser')) {
+            vscode.window.showInformationMessage(
+                'The HLSL parser engine changed. Reload the window to apply.',
+                'Reload Window'
+            ).then(choice => {
+                if (choice === 'Reload Window') {
+                    vscode.commands.executeCommand('workbench.action.reloadWindow');
+                }
+            });
+        }
     }));
 
     // add providers
     context.subscriptions.push(vscode.languages.registerHoverProvider(documentSelector, new HLSLHoverProvider(symbolCache)));
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(documentSelector, new HLSLCompletionItemProvider(symbolCache), '.'));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(documentSelector, new HLSLSignatureHelpProvider(), '(', ','));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(documentSelector, new HLSLSignatureHelpProvider(symbolCache), '(', ','));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(documentSelector, new HLSLReferenceProvider(symbolCache)));
 
-    let symbolProvider = new HLSLSymbolProvider();
+    let symbolProvider = new HLSLSymbolProvider(symbolCache, useAst);
     context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(documentSelector, symbolProvider));
     context.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider(symbolProvider));
 

@@ -6,6 +6,7 @@ import hlslGlobals = require('./hlslGlobals');
 import { https } from 'follow-redirects';
 import { JSDOM } from 'jsdom';
 import { SymbolCache } from './symbolCache';
+import { ISymbolBackend } from './symbolBackend';
 
 export function textToMarkedString(text: string): MarkedString {
 	return text.replace(/[\\`*_{}[\]()#+\-.!]/g, '\\$&'); // escape markdown syntax tokens: http://daringfireball.net/projects/markdown/syntax#backslash
@@ -31,13 +32,13 @@ export default class HLSLHoverProvider implements HoverProvider {
 
     private _subscriptions: Disposable[] = [];
     private _panel: WebviewPanel = null;
-    private symbolCache: SymbolCache;
+    private symbolCache: ISymbolBackend;
 
     private getSymbols(document: TextDocument): Thenable<SymbolInformation[]> {
         return this.symbolCache.getDocumentSymbols(document);
     }
 
-    constructor(symbolCache?: SymbolCache) {
+    constructor(symbolCache?: ISymbolBackend) {
         this.symbolCache = symbolCache || new SymbolCache();
         this._subscriptions.push( commands.registerCommand('shader.openLink', (link: string, newWindow: boolean) => {
             if (!this._panel) {
@@ -171,6 +172,14 @@ export default class HLSLHoverProvider implements HoverProvider {
             contents.push(textToMarkedString(entry.description));
             contents.push(linkToMarkdownString(entry.link));
             return new Hover(contents, wordRange);
+        }
+
+        // AST backend: prefer a typed declaration/signature hover.
+        if (this.symbolCache.describeSymbol) {
+            const astHover = await this.symbolCache.describeSymbol(document, position);
+            if (astHover) {
+                return astHover;
+            }
         }
 
         let symbols = await this.getSymbols(document);

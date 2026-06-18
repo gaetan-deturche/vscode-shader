@@ -2,6 +2,7 @@
 
 import { SignatureHelpProvider, SignatureHelp, SignatureInformation, ParameterInformation, CancellationToken, TextDocument, Position, workspace } from 'vscode';
 import hlslGlobals = require('./hlslGlobals');
+import { ISymbolBackend } from './symbolBackend';
 
 const _NL = '\n'.charCodeAt(0);
 const _TAB = '\t'.charCodeAt(0);
@@ -62,7 +63,13 @@ class BackwardIterator {
 
 export default class HLSLSignatureHelperProvider implements SignatureHelpProvider {
 
-    public provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken): Promise<SignatureHelp> {
+    private backend?: ISymbolBackend;
+
+    constructor(backend?: ISymbolBackend) {
+        this.backend = backend;
+    }
+
+    public async provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken): Promise<SignatureHelp> {
 
         let enable = workspace.getConfiguration('hlsl').get<boolean>('suggest.basic', true);
         if (!enable) {
@@ -83,6 +90,10 @@ export default class HLSLSignatureHelperProvider implements SignatureHelpProvide
 
         let entry = hlslGlobals.intrinsicfunctions[ident];
         if (!entry) {
+            // Not a builtin: ask the AST backend for a user-defined signature.
+            if (this.backend && this.backend.getSignature) {
+                return this.backend.getSignature(document, position);
+            }
             return null;
         }
 

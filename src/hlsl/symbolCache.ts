@@ -1,6 +1,7 @@
 'use strict';
 
 import { SymbolInformation, Uri, TextDocument, commands, Disposable, workspace, Location, Range, Position, window, ProgressLocation } from 'vscode';
+import { ISymbolBackend } from './symbolBackend';
 import * as fs from 'fs';
 import * as Path from 'path';
 
@@ -17,7 +18,7 @@ interface SerializedSymbol {
     containerName?: string;
 }
 
-export class SymbolCache {
+export class SymbolCache implements ISymbolBackend {
     private documentSymbols: Map<string, SymbolInformation[]> = new Map();
     private workspaceSymbols: SymbolInformation[] = [];
     private refreshInterval: NodeJS.Timeout;
@@ -312,6 +313,14 @@ export class SymbolCache {
         }
         
         return results;
+    }
+
+    async provideWorkspaceSymbols(query: string): Promise<SymbolInformation[]> {
+        if (!query) {
+            return this.workspaceSymbols.slice();
+        }
+        const lower = query.toLowerCase();
+        return this.workspaceSymbols.filter(s => s.name.toLowerCase().includes(lower));
     }
 
     async refreshWithProgress(): Promise<void> {

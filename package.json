@@ -2,7 +2,7 @@
 	"name": "shaderG2",
 	"displayName": "Shader languages support for VS Code",
 	"description": "Syntax highlighter for shader language (hlsl, glsl, cg) ",
-	"version": "1.1.8",
+	"version": "1.4.0",
 	"publisher": "slevesque-G2",
 	"categories": [
 		"Programming Languages"
@@ -159,6 +159,52 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Open the HLSL Documentation links on the side"
+				},
+				"hlsl.parser": {
+					"type": "string",
+					"enum": [
+						"regex",
+						"ast"
+					],
+					"enumItemLabels": [
+						"Regex (fast)",
+						"AST (accurate, default)"
+					],
+					"enumDescriptions": [
+						"Fast regex/ripgrep symbol extraction. Lightweight, but name-only and unaware of scope.",
+						"AST-based parser: scope-aware go-to-definition, struct member completion after '.', and typed hover/signature help."
+					],
+					"default": "ast",
+					"markdownDescription": "Symbol engine used for HLSL navigation and completion.\n\n- **AST** — parses files into a syntax tree for scope-aware results (default).\n- **Regex** — fast, name-based matching.\n\n_Changing this requires reloading the window._",
+					"order": 1
+				},
+				"hlsl.ast.swizzleCompletion": {
+					"type": "boolean",
+					"default": true,
+					"markdownDescription": "When `#hlsl.parser#` is set to **AST**, offer vector swizzle members (`.xyzw` / `.rgba`) on `float`/`half`/`int`/`uint` vector types.",
+					"order": 2
+				},
+				"hlsl.ast.excludeDirs": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [
+						"node_modules",
+						".git",
+						"Saved",
+						"Intermediate",
+						"Binaries",
+						"DerivedDataCache"
+					],
+					"markdownDescription": "When `#hlsl.parser#` is set to **AST**, directory names excluded from workspace symbol indexing (matched as a full path segment, anywhere in the tree). Build-artifact folders such as Unreal's `Saved`/`Intermediate` hold thousands of generated shaders and should stay excluded to keep indexing fast and memory low.",
+					"order": 3
+				},
+				"hlsl.ast.unrealUniformBuffers": {
+					"type": "boolean",
+					"default": true,
+					"markdownDescription": "When `#hlsl.parser#` is set to **AST**, also scan C++ (`.h`/`.cpp`/`.inl`) for Unreal Engine shader-parameter / uniform-buffer structs (`BEGIN_*_SHADER_PARAMETER_STRUCT`, `SHADER_PARAMETER(...)`, `UNIFORM_MEMBER(...)`). Their members are indexed so go-to-definition and find-references on a uniform member jump to the C++ declaration. Requires ripgrep (bundled with VS Code).",
+					"order": 4
 				}
 			}
 		}
@@ -188,6 +234,7 @@
 		"jsdom": "^24.1.3",
 		"lru-cache": "^8.0.4",
 		"minimatch": "^9.0.4",
+		"sql.js": "^1.14.1",
 		"tmp": "^0.2.5"
 	}
 }

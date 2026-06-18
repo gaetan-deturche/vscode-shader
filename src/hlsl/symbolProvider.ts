@@ -1,7 +1,8 @@
 'use strict';
 
 import { DocumentSymbolProvider, WorkspaceSymbolProvider, SymbolKind, SymbolInformation, CancellationToken, TextDocument, Position, Range, RelativePattern, Location, Uri, Disposable, window, workspace, extensions } from 'vscode';
-import { rgPath, hlslExtensions } from '../common';
+import { rgPath, hlslExtensions, getHlslExtensions } from '../common';
+import { ISymbolBackend } from './symbolBackend';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
@@ -24,23 +25,17 @@ export default class HLSLDocumentSymbolProvider implements DocumentSymbolProvide
 
     private _disposables: Disposable[] = [];
 
-    private _hlslPattern = ['.hlsl','.hlsli','.fx','.fxh','.vsh','.psh','.cginc','.compute', '.ush', '.usf'];
-    
-    constructor() {
-        const extention = extensions.getExtension('vscode.hlsl');
-        if (extention && extention.packageJSON 
-            && extention.packageJSON.contributes
-            && extention.packageJSON.contributes.languages) {
-            let hlsllang: any[] = extention.packageJSON.contributes.languages.filter(l => l.id === 'hlsl');
-            if (hlsllang.length && hlsllang[0].extensions) {
-                this._hlslPattern = this._hlslPattern.concat(hlsllang[0].extensions.slice());
-            }
-        }
+    private _hlslPattern: string[];
 
-        this._hlslPattern = this._hlslPattern.concat(hlslExtensions)
-        
-        // Keep only unique entries
-        this._hlslPattern = [...new Set(this._hlslPattern)];
+    // When an AST backend is active, document/workspace symbol production is
+    // delegated to it instead of the regex/ripgrep path below.
+    private _backend?: ISymbolBackend;
+    private _useAst: boolean;
+
+    constructor(backend?: ISymbolBackend, useAst: boolean = false) {
+        this._hlslPattern = getHlslExtensions();
+        this._backend = backend;
+        this._useAst = useAst && !!backend;
     }
 
     public dispose(){
@@ -95,6 +90,9 @@ export default class HLSLDocumentSymbolProvider implements DocumentSymbolProvide
     }
 
     public provideDocumentSymbols(document: TextDocument, token: CancellationToken): Thenable<SymbolInformation[]> {
+        if (this._useAst && this._backend) {
+            return this._backend.getDocumentSymbols(document);
+        }
         return this.getDocumentSymbols(document.uri);
     }
 
@@ -123,8 +121,12 @@ export default class HLSLDocumentSymbolProvider implements DocumentSymbolProvide
     }
 
     public provideWorkspaceSymbols(query: string, token: CancellationToken): Thenable<SymbolInformation[]> {
+        if (this._useAst && this._backend) {
+            return this._backend.provideWorkspaceSymbols(query);
+        }
+
         console.log('provideWorkspaceSymbols called with query:', query, 'rgPath:', rgPath);
-        
+
         if (!rgPath) {
             console.log('provideWorkspaceSymbols: no rgPath, returning empty');
             return Promise.resolve([]);

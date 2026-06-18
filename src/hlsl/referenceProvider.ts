@@ -2,44 +2,56 @@
 
 import { ReferenceProvider, CancellationToken, TextDocument, Position, Location, SymbolInformation, commands, workspace } from 'vscode';
 import { SymbolCache } from './symbolCache';
+import { ISymbolBackend } from './symbolBackend';
 
 export default class HLSLReferenceProvider implements ReferenceProvider {
-    private symbolCache: SymbolCache;
+    private symbolCache: ISymbolBackend;
 
-    constructor(symbolCache?: SymbolCache) {
+    constructor(symbolCache?: ISymbolBackend) {
         this.symbolCache = symbolCache || new SymbolCache();
     }
 
-    public provideReferences(document: TextDocument, position: Position, options: { includeDeclaration: boolean }, token: CancellationToken): Thenable<Location[]> {
-        let enable = workspace.getConfiguration('hlsl').get<boolean>('suggest.basic', true);
+    public async provideReferences(document: TextDocument, position: Position, options: { includeDeclaration: boolean }, token: CancellationToken): Promise<Location[]> {
+        const enable = workspace.getConfiguration('hlsl').get<boolean>('suggest.basic', true);
         if (!enable) {
-            return null;
+            return [];
         }
 
-        let wordRange = document.getWordRangeAtPosition(position);
+        const wordRange = document.getWordRangeAtPosition(position);
         if (!wordRange) {
-            return null;
+            return [];
         }
 
-        let name = document.getText(wordRange);
+        const name = document.getText(wordRange);
+        if (!name) {
+            return [];
+        }
 
-        return new Promise<Location[]>( async (resolve, reject) => {
-            let results: Location[] = [];
-
+        try {
+            const results: Location[] = [];
             const text = document.getText();
-            
-            const regex = new RegExp(`\\b${name}\\b`, 'gm');
-            let match: RegExpExecArray = null;
-            while (match = regex.exec(text)) {
-                let refPosition = document.positionAt(match.index);
-                results.push(new Location(document.uri, document.getWordRangeAtPosition(refPosition)));
+
+            // Escape regex metacharacters; \b only applies around word chars.
+            const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`\\b${escaped}\\b`, 'gm');
+            let match: RegExpExecArray | null = null;
+            let i = 0;
+            while ((match = regex.exec(text))) {
+                const refRange = document.getWordRangeAtPosition(document.positionAt(match.index));
+                if (refRange) { results.push(new Location(document.uri, refRange)); }
+                // Honor cancellation so a huge document never blocks indefinitely.
+                if ((++i & 0x3ff) === 0 && token.isCancellationRequested) { return results; }
             }
 
-            let symbols = await this.symbolCache.findSymbols(name);
-            symbols.filter(s => (s.name === name && s.location.uri.toString() != document.uri.toString()) ).forEach(symbol => {
-                results.push(symbol.location);
-            });
-            resolve(results);
-        });
+            if (token.isCancellationRequested) { return results; }
+
+            const symbols = await this.symbolCache.findSymbols(name);
+            symbols
+                .filter(s => s.name === name && s.location.uri.toString() !== document.uri.toString())
+                .forEach(symbol => results.push(symbol.location));
+            return results;
+        } catch {
+            return [];
+        }
     }
 }

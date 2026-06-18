@@ -3,23 +3,33 @@
 import { CompletionItemProvider, CompletionItem, CompletionItemKind, CancellationToken, TextDocument, Position, Range, TextEdit, workspace, commands, SymbolInformation, SymbolKind } from 'vscode';
 import hlslGlobals = require('./hlslGlobals');
 import { SymbolCache } from './symbolCache';
+import { ISymbolBackend } from './symbolBackend';
 
 
 export default class HLSLCompletionItemProvider implements CompletionItemProvider {
-    private symbolCache: SymbolCache;
+    private symbolCache: ISymbolBackend;
 
-    constructor(symbolCache?: SymbolCache) {
+    constructor(symbolCache?: ISymbolBackend) {
         this.symbolCache = symbolCache || new SymbolCache();
     }
 
     public triggerCharacters = ['.'];
 
-    public provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken): Promise<CompletionItem[]> {
+    public async provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken): Promise<CompletionItem[]> {
         let result: CompletionItem[] = [];
 
         let enable = workspace.getConfiguration('hlsl').get<boolean>('suggest.basic', true);
         if (!enable) {
             return Promise.resolve(result);
+        }
+
+        // AST backend: if the cursor follows a `.`, offer member completion
+        // (struct fields / swizzles) instead of the global symbol dump.
+        if (this.symbolCache.completeMembers && isMemberAccess(document, position)) {
+            const members = await this.symbolCache.completeMembers(document, position);
+            if (members && members.length > 0) {
+                return members;
+            }
         }
 
         var range = document.getWordRangeAtPosition(position);
@@ -159,4 +169,18 @@ export default class HLSLCompletionItemProvider implements CompletionItemProvide
 				resolve(result);
 			}, reason => reject(reason)) });
 	}
+}
+
+/**
+ * True when the identifier being typed is immediately preceded by a `.`,
+ * i.e. the user is accessing a member of some expression.
+ */
+function isMemberAccess(document: TextDocument, position: Position): boolean {
+    const wordRange = document.getWordRangeAtPosition(position);
+    const start = wordRange ? wordRange.start : position;
+    if (start.character === 0) {
+        return false;
+    }
+    const before = new Range(start.translate(0, -1), start);
+    return document.getText(before) === '.';
 }
