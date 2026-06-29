@@ -15,3 +15,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run compile
+
+      # Only build the installable .vsix on a tag push (e.g. v1.1.5)
+      - name: Package VSIX
+        if: startsWith(github.ref, 'refs/tags/')
+        run: npx --yes @vscode/vsce package --allow-missing-repository
+      - name: Upload VSIX
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: '*.vsix'
