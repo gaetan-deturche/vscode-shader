@@ -1,8 +1,7 @@
 # vscode-shader
 
-[![GitHub issues](https://img.shields.io/github/issues/stef-levesque/vscode-shader.svg)](https://github.com/stef-levesque/vscode-shader/issues)
-[![GitHub license button](https://img.shields.io/github/license/stef-levesque/vscode-shader.svg)](https://github.com/stef-levesque/vscode-shader/blob/master/LICENSE.md)
-[![Gitter chat button](https://img.shields.io/gitter/room/stef-levesque/vscode-shader.svg)](https://gitter.im/stef-levesque/vscode-shader)
+[![GitHub issues](https://img.shields.io/github/issues/gaetan-deturche/vscode-shader.svg)](https://github.com/gaetan-deturche/vscode-shader/issues)
+[![GitHub license button](https://img.shields.io/github/license/gaetan-deturche/vscode-shader.svg)](https://github.com/gaetan-deturche/vscode-shader/blob/master/LICENSE.md)
 
 ## Description
 
