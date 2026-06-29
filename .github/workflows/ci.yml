@@ -7,6 +7,8 @@ on:
 jobs:
   compile:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to attach the .vsix to the release
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,13 +18,19 @@ jobs:
       - run: npm ci
       - run: npm run compile
 
-      # Only build the installable .vsix on a tag push (e.g. v1.1.5)
+      # On a tag push (e.g. v1.1.5): build the .vsix, keep it as a run artifact,
+      # and attach it to the matching GitHub Release (created if it doesn't exist).
       - name: Package VSIX
         if: startsWith(github.ref, 'refs/tags/')
         run: npx --yes @vscode/vsce package --allow-missing-repository
-      - name: Upload VSIX
+      - name: Upload VSIX artifact
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: vsix
           path: '*.vsix'
+      - name: Attach VSIX to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: '*.vsix'
